@@ -21,8 +21,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.dbt-gen",
-        "title": "Generate dbt code from ChatGPT"
+        "command": "extension.dbt-gen-stg",
+        "title": "Generate staging model with ChatGPT"
+      },
+      {
+        "command": "extension.dbt-gen-insight",
+        "title": "Generate insightful models with ChatGPT"
       }
     ]
   },
