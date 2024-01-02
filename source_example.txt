@@ -1,4 +1,4 @@
-Example of a staging layer:
+Example of a staging SQL model:
 -- stg_stripe__payments.sql
 
 with
@@ -45,3 +45,39 @@ renamed as (
 )
 
 select * from renamed
+
+Example of a layer's YAML file, that describes it's properties:
+
+-- _stg_jaffle_shop.yml 
+
+version: 2
+
+models:
+  - name: stg_jaffle_shop__customers
+    description: "The staging model for customers."
+    config:
+      tags: ['pii']
+    columns:
+      - name: customer_id
+        description: "Id of a customer, primary key for the table."
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_jaffle_shop__orders
+    description: "The staging model for orders."
+    config:
+      materialized: view
+    columns:
+      - name: order_id
+        description: "Id of a order, primary key for the table."
+        tests:
+          - unique
+          - not_null
+      - name: status
+        description: "An order's status."
+        tests:
+          - accepted_values:
+              values: ['placed', 'shipped', 'completed', 'return_pending', 'returned']
+              config:
+                severity: warn

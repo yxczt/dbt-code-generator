@@ -23,20 +23,27 @@ export function activate(context: vscode.ExtensionContext) {
 
 			async function main() {
 				const source_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/source_example.txt', 'utf-8');
+				const test_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/test_reason_and_examples.txt', 'utf-8');
 				const sources_yaml = fs.readFileSync(sources.substring(1));
 				const info_schema = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/information_schema.csv", 'utf-8');
 				const completion = await openai.chat.completions.create({
 					messages: [{
 						role: "system", content:
-							"You are a data engineer working with dbt. Your job is to make a staging layer from a given sources.yml file and information_schema. Use the source() Jinja function, wherever possible!\n" +
+							"You are a data engineer working with dbt. Your job is to make a staging model using a given sources.yml file and information_schema.\n" +
+							"A staging model consists of a SQL model and a YAML model file that describes the properties of the SQL model.\n" +
+							"In the YAML file describe all the columns that were generated!\n" +
+							"Use unique and not_null tests for the primary key fields!\n" +
+							"Use the source() Jinja function, wherever possible!\n" +
 							source_example + "\n" +
+							"Tests that can be used and some additional description to tests:\n" +
+							test_example + "\n" +
 							"Your given sources.yml file:\n" +
 							sources_yaml + "\n" +
 							"Your given information_schema:\n" +
 							info_schema + "\n" +
-							"Please only respond with the generated code and only that!\n" +
+							"Please only respond with the generated code and the YAML file and only those without any additional message!\n" +
 							"Don't put a semicolon at the end of the select statement!\n" +
-							"You are automating the process of developing, so generate all the resulting models' code, not just one example!\n" +
+							"You are automating the process of developing, so generate all the resulting model's code and all the yaml file not just an example!\n" +
 							document.getText(selection)
 
 					}],
