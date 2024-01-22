@@ -27,6 +27,10 @@
       {
         "command": "extension.dbt-gen-insight",
         "title": "Generate insightful models with ChatGPT"
+      },
+      {
+        "command": "extension.dbt-gen-stg-yaml",
+        "title": "Generate property description YAML with ChatGPT"
       }
     ]
   },
