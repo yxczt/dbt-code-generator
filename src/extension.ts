@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 							role: "user", content: document.getText(selection)
 						}
 					],
-					model: "gpt-4-1106-preview",
+					model: "gpt-4-0125-preview",
 					temperature: 0.8
 				});
 
@@ -105,7 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
 							role: "user", content: document.getText(selection)
 						}
 					],
-					model: "gpt-4-1106-preview",
+					model: "gpt-4-0125-preview",
 					temperature: 0.8
 				});
 
@@ -168,7 +168,7 @@ export function activate(context: vscode.ExtensionContext) {
 								document.getText(selection)
 						}
 					],
-					model: "gpt-4-1106-preview",
+					model: "gpt-4-0125-preview",
 					temperature: 0.5
 				});
 
