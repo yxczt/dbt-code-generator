@@ -145,25 +145,31 @@ export function activate(context: vscode.ExtensionContext) {
 						{
 							role: "system", content:
 								"You are a data engineer working with dbt. Your job is to complement a yaml file that describes properties of a layer's SQL models using a summary of the content of the unique database.\n" +
+								"The summary of the database contains information regarding uniqueness, null values, number of distinct values, example values and some additional statistics.\n" +
+								yaml_example + "\n" +
+								test_example + "\n" +
+								"If the column's is_unique flag in the model is true add a unique test!\n" +
+								"Only add not_null test, if the column has no null values at all!\n" +
+								"If the column is recognized as a foreign key add a relationships test!\n" +
+								"If the column's distinct count is less than or equals 3 add accepted_values test!\n" +
+								"You should consider other columns' and tables' information in the summarization table when adding the generic tests!\n" +
 								"You can assume, that the property YAML file already exists and you just have to complement it with the given model's properties!\n" +
 								"The beginning of the existing YAML file, that shouldn't be in the answer, is:\n" +
 								"version: 2\n" +
 								"\n" +
 								"models:\n" +
-								"Add to columns generic tests wherever it makes sense according to the summarization of the column!\n" +
-								test_example + "\n" +
-								yaml_example + "\n" +
-								"The summarization of the content of the unique database in CSV format is:\n" +
-								summary + "\n" +
-								"Only respond with the complimention itself, without any triple-backticks!\n" +
-								"You are automating the process of developing, so generate all the complimention regarding the model, not just one example!\n"
+								"You are automating the process of developing, so generate all the addition regarding the model, not just one example!\n" +
+								"You should only use information provided in this context, nothing outside of it!\n" +
+								"Only respond with the addition itself, without any triple-backticks!\n"
 						},
 						{
-							role: "user", content: document.getText(selection)
+							role: "user", content: "The summary of the unique database in CSV format is:\n" +
+								summary + "\n" +
+								document.getText(selection)
 						}
 					],
 					model: "gpt-4-1106-preview",
-					temperature: 0.8
+					temperature: 0.5
 				});
 
 				return completion!.choices[0]!.message['content'];
