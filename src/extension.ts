@@ -29,17 +29,17 @@ export function activate(context: vscode.ExtensionContext) {
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to make a staging model using a given sources.yml file and information_schema.\n" +
+								"You are a data engineer working with dbt. Your job is to *make a staging model* using a given sources.yml file and information_schema.\n" +
 								"Use the source() Jinja function, wherever possible!\n" +
 								source_example + "\n" +
-								"Your given sources.yml file:\n" +
+								"Your given *sources.yml file*:\n" +
 								sources_yaml + "\n" +
-								"Your given information_schema:\n" +
+								"Your given *information_schema*:\n" +
 								info_schema + "\n" +
-								"Please only respond with the generated code and only that, without any additional message!\n" +
+								"Please only respond with working code, remember the *basics of SQL development*!\n" +
 								"Don't put a semicolon at the end of the select statement!\n" +
 								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
-								"You are automating the process of developing, so generate all the resulting model's code not just an example!\n"
+								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 
 						},
 						{
@@ -86,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to *make intermediate models* from given staging models, other intermediate models and a summarization of the available columns. Use the *ref() Jinja function and other Jinja code*, wherever possible!\n" +
+								"You are a data engineer working with dbt. Your job is to *make an intermediate model* from given staging models, other intermediate models and a summarization of the available columns. Use the *ref() Jinja function and other Jinja code*, wherever possible!\n" +
 								"Remember to use the *staging models or other intermediate models as a base* and work from there!\n" +
 								"Construct the intermediate models, so they can be *useful in future mart model* development!\n" +
 								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
@@ -99,6 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
 								"Your given *summary of the intermediate layer*:\n" +
 								summary_int + "\n" +
 								"Please only respond with working code, remember the *basics of SQL development*!\n" +
+								"Don't put a semicolon at the end of the select statement!\n" +
 								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
 								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 						},
@@ -147,7 +148,7 @@ export function activate(context: vscode.ExtensionContext) {
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to make mart tables from a given staging layer, intermediate layer and a summarization of the available columns. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
+								"You are a data engineer working with dbt. Your job is to *make a mart table* from a given staging layer, intermediate layer and a summarization of the available columns. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
 								"Mart tables should be enriched with many dimension columns, so they can be better aggregated in the future!\n" +
 								"Mart tables should be *easily analyzable in a BI tool* and using *names, that are familiar* with the ordinary businessman!\n" +
 								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
@@ -160,6 +161,7 @@ export function activate(context: vscode.ExtensionContext) {
 								"Your given *summary of the intermediate layer*:\n" +
 								summary_int + "\n" +
 								"Please only respond with working code, remember the *basics of SQL development*!\n" +
+								"Don't put a semicolon at the end of the select statement!\n" +
 								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
 								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 						},
