@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
 								info_schema + "\n" +
 								"Please only respond with the generated code and only that, without any additional message!\n" +
 								"Don't put a semicolon at the end of the select statement!\n" +
-								"Only respond with the code itself, without any triple-backticks!\n" +
+								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
 								"You are automating the process of developing, so generate all the resulting model's code not just an example!\n"
 
 						},
@@ -77,29 +77,29 @@ export function activate(context: vscode.ExtensionContext) {
 
 			async function main() {
 				const int_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_example.txt', 'utf-8');
-				const mart_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_example.txt', 'utf-8');
-				const info_schema = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/information_schema_stg.csv", 'utf-8');
+				//const mart_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_example.txt', 'utf-8');
+				const summary_stg = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/stg_summarize.csv", 'utf-8');
+				const summary_int = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/int_summarize.csv", 'utf-8');
 				const intermediate_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_reason.txt", 'utf-8');
-				const mart_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_reason.txt", 'utf-8');
+				//const mart_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_reason.txt", 'utf-8');
 				const completion = await openai.chat.completions.create({
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to make mart tables from a given staging layer. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
-								"Generate the code for intermediate tables as well, whenever it is useful!\n" +
-								"If the mart table would be only constructed from one intermediate table by copy, don't make the intermediate table, instead make only the mart model!\n" +
-								"Construct the intermediate models, so they can be useful in future mart model development!\n" +
-								"If you have to use more table, than it is written in your prompt, use them and give an explanation, why you use them!\n" +
-								"Only make sensible models, don't assume direct connections between tables, if you didn't find a direct connection already!\n" +
-								"Mart tables should be enriched with many dimension columns, so they can be better aggregated in the future!\n" +
+								"You are a data engineer working with dbt. Your job is to *make intermediate models* from given staging models, other intermediate models and a summarization of the available columns. Use the *ref() Jinja function and other Jinja code*, wherever possible!\n" +
+								"Remember to use the *staging models or other intermediate models as a base* and work from there!\n" +
+								"Construct the intermediate models, so they can be *useful in future mart model* development!\n" +
+								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
 								intermediate_reason + "\n" +
 								int_example + "\n" +
-								mart_reason + "\n" +
-								mart_example + "\n" +
-								"Your given information_schema:\n" +
-								info_schema + "\n" +
-								"Please only respond with the generated code and only that!\n" +
-								"You are automating the process of developing, so generate all the resulting models' code, not just one example!\n"
+								"Remember, when making CTEs from referenced models, *always use 'select *' *!\n" +
+								"Your given *summary of the staging layer*:\n" +
+								summary_stg + "\n" +
+								"Your given *summary of the intermediate layer*:\n" +
+								summary_int + "\n" +
+								"Please only respond with working code, remember the *basics of SQL development*!\n" +
+								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
+								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 						},
 						{
 							role: "user", content: document.getText(selection)
@@ -135,30 +135,31 @@ export function activate(context: vscode.ExtensionContext) {
 			const openai = new OpenAI();
 
 			async function main() {
-				const int_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_example.txt', 'utf-8');
+				//const int_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_example.txt', 'utf-8');
 				const mart_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_example.txt', 'utf-8');
-				const info_schema = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/information_schema_stg.csv", 'utf-8');
-				const intermediate_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_reason.txt", 'utf-8');
+				//const info_schema = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/information_schema_stg.csv", 'utf-8');
+				const summary_stg = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/stg_summarize.csv", 'utf-8');
+				const summary_int = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/int_summarize.csv", 'utf-8');
+				//const intermediate_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_reason.txt", 'utf-8');
 				const mart_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_reason.txt", 'utf-8');
 				const completion = await openai.chat.completions.create({
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to make mart tables from a given staging layer. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
-								"Generate the code for intermediate tables as well, whenever it is useful!\n" +
-								"If the mart table would be only constructed from one intermediate table by copy, don't make the intermediate table, instead make only the mart model!\n" +
-								"Construct the intermediate models, so they can be useful in future mart model development!\n" +
-								"If you have to use more table, than it is written in your prompt, use them and give an explanation, why you use them!\n" +
-								"Only make sensible models, don't assume direct connections between tables, if you didn't find a direct connection already!\n" +
+								"You are a data engineer working with dbt. Your job is to make mart tables from a given staging layer, intermediate layer and a summarization of the available columns. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
 								"Mart tables should be enriched with many dimension columns, so they can be better aggregated in the future!\n" +
-								intermediate_reason + "\n" +
-								int_example + "\n" +
+								"Mart tables should be *easily analyzable in a BI tool* and using *names, that are familiar* with the ordinary businessman!\n" +
+								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
 								mart_reason + "\n" +
 								mart_example + "\n" +
-								"Your given information_schema:\n" +
-								info_schema + "\n" +
-								"Please only respond with the generated code and only that!\n" +
-								"You are automating the process of developing, so generate all the resulting models' code, not just one example!\n"
+								"Remember, when making CTEs from referenced models, *always use 'select *' *!\n" +
+								"Your given *summary of the staging layer*:\n" +
+								summary_stg + "\n" +
+								"Your given *summary of the intermediate layer*:\n" +
+								summary_int + "\n" +
+								"Please only respond with working code, remember the *basics of SQL development*!\n" +
+								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
+								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 						},
 						{
 							role: "user", content: document.getText(selection)
