@@ -90,6 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
 								"Remember to use the *staging models or other intermediate models as a base* and work from there!\n" +
 								"Construct the intermediate models, so they can be *useful in future mart model* development!\n" +
 								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
+								"Assume only *connections between models, that are actually there*! If you *don't find a direct connection*, *try to use other models* to connect them!\n" +
 								intermediate_reason + "\n" +
 								int_example + "\n" +
 								"Remember, when making CTEs from referenced models, *always use 'select *' *!\n" +
@@ -150,6 +151,7 @@ export function activate(context: vscode.ExtensionContext) {
 								"Mart tables should be enriched with many dimension columns, so they can be better aggregated in the future!\n" +
 								"Mart tables should be *easily analyzable in a BI tool* and using *names, that are familiar* with the ordinary businessman!\n" +
 								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
+								"Assume only *connections between models, that are actually there*! If you *don't find a direct connection*, *try to use other models* to connect them!\n" +
 								mart_reason + "\n" +
 								mart_example + "\n" +
 								"Remember, when making CTEs from referenced models, *always use 'select *' *!\n" +
