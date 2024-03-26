@@ -25,8 +25,12 @@
         "title": "Generate staging model with ChatGPT"
       },
       {
-        "command": "extension.dbt-gen-insight",
-        "title": "Generate insightful models with ChatGPT"
+        "command": "extension.dbt-gen-int",
+        "title": "Generate intermediate models with ChatGPT"
+      },
+      {
+        "command": "extension.dbt-gen-mart",
+        "title": "Generate mart models with ChatGPT"
       },
       {
         "command": "extension.dbt-gen-stg-yaml",

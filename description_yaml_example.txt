@@ -30,6 +30,6 @@ models:
         description: "An order's status."
         tests:
           - accepted_values:
-              values: ['placed', 'shipped', 'completed', 'return_pending', 'returned']
+              values: ['placed', 'shipped']
               config:
                 severity: warn

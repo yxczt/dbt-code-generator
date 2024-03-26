@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 					],
 					model: "gpt-4-0125-preview",
-					temperature: 0.8
+					temperature: 0.5
 				});
 
 				return completion!.choices[0]!.message['content'];
@@ -62,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const disposable2 = vscode.commands.registerCommand('extension.dbt-gen-insight', function () {
+	const disposable2 = vscode.commands.registerCommand('extension.dbt-gen-int', function () {
 		// Get the active text editor
 		const editor = vscode.window.activeTextEditor;
 		const workspace = vscode.workspace;
@@ -121,7 +121,66 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const disposable3 = vscode.commands.registerCommand('extension.dbt-gen-stg-yaml', function () {
+	const disposable3 = vscode.commands.registerCommand('extension.dbt-gen-mart', function () {
+		// Get the active text editor
+		const editor = vscode.window.activeTextEditor;
+		const workspace = vscode.workspace;
+
+		if (editor && workspace.workspaceFolders !== undefined) {
+			const document = editor.document;
+			const selection = editor.selection;
+			const ws_folder = workspace.workspaceFolders[0].uri.path;
+
+
+			const openai = new OpenAI();
+
+			async function main() {
+				const int_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_example.txt', 'utf-8');
+				const mart_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_example.txt', 'utf-8');
+				const info_schema = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/information_schema_stg.csv", 'utf-8');
+				const intermediate_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_reason.txt", 'utf-8');
+				const mart_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_reason.txt", 'utf-8');
+				const completion = await openai.chat.completions.create({
+					messages: [
+						{
+							role: "system", content:
+								"You are a data engineer working with dbt. Your job is to make mart tables from a given staging layer. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
+								"Generate the code for intermediate tables as well, whenever it is useful!\n" +
+								"If the mart table would be only constructed from one intermediate table by copy, don't make the intermediate table, instead make only the mart model!\n" +
+								"Construct the intermediate models, so they can be useful in future mart model development!\n" +
+								"If you have to use more table, than it is written in your prompt, use them and give an explanation, why you use them!\n" +
+								"Only make sensible models, don't assume direct connections between tables, if you didn't find a direct connection already!\n" +
+								"Mart tables should be enriched with many dimension columns, so they can be better aggregated in the future!\n" +
+								intermediate_reason + "\n" +
+								int_example + "\n" +
+								mart_reason + "\n" +
+								mart_example + "\n" +
+								"Your given information_schema:\n" +
+								info_schema + "\n" +
+								"Please only respond with the generated code and only that!\n" +
+								"You are automating the process of developing, so generate all the resulting models' code, not just one example!\n"
+						},
+						{
+							role: "user", content: document.getText(selection)
+						}
+					],
+					model: "gpt-4-0125-preview",
+					temperature: 0.8
+				});
+
+				return completion!.choices[0]!.message['content'];
+			};
+
+			// Get the word within the selection
+			main().then((result) => {
+				editor.edit(editBuilder => {
+					editBuilder.replace(selection, document.getText(selection) + "\n" + result);
+				});
+			});
+		}
+	});
+
+	const disposable4 = vscode.commands.registerCommand('extension.dbt-gen-stg-yaml', function () {
 		// Get the active text editor
 		const editor = vscode.window.activeTextEditor;
 		const workspace = vscode.workspace;
@@ -144,22 +203,22 @@ export function activate(context: vscode.ExtensionContext) {
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to complement a yaml file that describes properties of a layer's SQL models using a summary of the content of the unique database.\n" +
-								"The summary of the database contains information regarding uniqueness, null values, number of distinct values, example values and some additional statistics.\n" +
+								"You are a data engineer working with dbt. You are new to a project, where you know nothing of the data, that you are working with, except the information provided below.\n" +
+								"Your job is to complement a yaml file that describes properties of a layer's SQL models using a summary of the content of the unique database.\n" +
+								"The summary of the database contains information regarding uniqueness, null values, number of distinct values, example values and some additional statistics for each column in the database.\n" +
 								yaml_example + "\n" +
 								test_example + "\n" +
-								"If the column's is_unique flag in the model is true add a unique test!\n" +
-								"Only add not_null test, if the column has no null values at all!\n" +
-								"If the column is recognized as a foreign key add a relationships test!\n" +
-								"If the column's distinct count is less than or equals 3 add accepted_values test!\n" +
+								"Add generic tests to the columns only, where you are absolutely sure, that it is correct to test that based on the information provided about the columns!\n" +
 								"You should consider other columns' and tables' information in the summarization table when adding the generic tests!\n" +
+								"Try to recognize as many foreign keys in the database, as you can using the relationships test!\n" +
+								"The 'accepted_values' test should be only on 'warn' severity!\n" +
 								"You can assume, that the property YAML file already exists and you just have to complement it with the given model's properties!\n" +
 								"The beginning of the existing YAML file, that shouldn't be in the answer, is:\n" +
 								"version: 2\n" +
 								"\n" +
 								"models:\n" +
 								"You are automating the process of developing, so generate all the addition regarding the model, not just one example!\n" +
-								"You should only use information provided in this context, nothing outside of it!\n" +
+								"You have to use information provided about the data in this context only!\n" +
 								"Only respond with the addition itself, without any triple-backticks!\n"
 						},
 						{
@@ -169,7 +228,7 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 					],
 					model: "gpt-4-0125-preview",
-					temperature: 0.5
+					temperature: 0.3
 				});
 
 				return completion!.choices[0]!.message['content'];
@@ -187,4 +246,5 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(disposable2);
 	context.subscriptions.push(disposable3);
+	context.subscriptions.push(disposable4);
 }
