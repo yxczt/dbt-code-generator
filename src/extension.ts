@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import OpenAI from "openai";
 
 import * as fs from 'fs';
+import path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand('extension.dbt-gen-stg', function () {
@@ -16,15 +17,16 @@ export function activate(context: vscode.ExtensionContext) {
 			const document = editor.document;
 			const selection = editor.selection;
 			const ws_folder = workspace.workspaceFolders[0].uri.path;
-			const sources = ws_folder + '/dipterv_v0/models/sources.yml'
+			const sources = ws_folder + '/models/sources.yml'
+			const src_info_schema_route = ws_folder + '/dbt_code_generator/staging/information_schema.csv'
 
 
 			const openai = new OpenAI();
 
 			async function main() {
-				const source_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/source_example.txt', 'utf-8');
+				const source_example = fs.readFileSync(path.resolve(__dirname, '../source_example.txt'));
 				const sources_yaml = fs.readFileSync(sources.substring(1));
-				const info_schema = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/information_schema.csv", 'utf-8');
+				const info_schema = fs.readFileSync(src_info_schema_route.substring(1));
 				const completion = await openai.chat.completions.create({
 					messages: [
 						{
@@ -38,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 								info_schema + "\n" +
 								"Please only respond with working code, remember the *basics of SQL development*!\n" +
 								"Don't put a semicolon at the end of the select statement!\n" +
-								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
+								"Please *only* respond with the *generated code* and only that, *avoid code block markdown*!\n" +
 								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 
 						},
@@ -71,16 +73,18 @@ export function activate(context: vscode.ExtensionContext) {
 			const document = editor.document;
 			const selection = editor.selection;
 			const ws_folder = workspace.workspaceFolders[0].uri.path;
+			const stg_summary_route = ws_folder + '/dbt_code_generator/staging/stg_summarize.csv'
+			const int_summary_route = ws_folder + '/dbt_code_generator/intermediate/int_summarize.csv'
 
 
 			const openai = new OpenAI();
 
 			async function main() {
-				const int_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_example.txt', 'utf-8');
+				const int_example = fs.readFileSync(path.resolve(__dirname, '../intermediate_example.txt'), 'utf-8');
 				//const mart_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_example.txt', 'utf-8');
-				const summary_stg = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/stg_summarize.csv", 'utf-8');
-				const summary_int = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/int_summarize.csv", 'utf-8');
-				const intermediate_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_reason.txt", 'utf-8');
+				const summary_stg = fs.readFileSync(stg_summary_route.substring(1));
+				const summary_int = fs.readFileSync(int_summary_route.substring(1));
+				const intermediate_reason = fs.readFileSync(path.resolve(__dirname, '../intermediate_reason.txt'), 'utf-8');
 				//const mart_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_reason.txt", 'utf-8');
 				const completion = await openai.chat.completions.create({
 					messages: [
@@ -100,7 +104,7 @@ export function activate(context: vscode.ExtensionContext) {
 								summary_int + "\n" +
 								"Please only respond with working code, remember the *basics of SQL development*!\n" +
 								"Don't put a semicolon at the end of the select statement!\n" +
-								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
+								"Please *only* respond with the *generated code* and only that, *avoid code block markdown*!\n" +
 								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 						},
 						{
@@ -108,7 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 					],
 					model: "gpt-4-0125-preview",
-					temperature: 0.8
+					temperature: 0.5
 				});
 
 				return completion!.choices[0]!.message['content'];
@@ -132,18 +136,20 @@ export function activate(context: vscode.ExtensionContext) {
 			const document = editor.document;
 			const selection = editor.selection;
 			const ws_folder = workspace.workspaceFolders[0].uri.path;
+			const stg_summary_route = ws_folder + '/dbt_code_generator/staging/stg_summarize.csv'
+			const int_summary_route = ws_folder + '/dbt_code_generator/intermediate/int_summarize.csv'
 
 
 			const openai = new OpenAI();
 
 			async function main() {
 				//const int_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_example.txt', 'utf-8');
-				const mart_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_example.txt', 'utf-8');
+				const mart_example = fs.readFileSync(path.resolve(__dirname, '../mart_example.txt'));
 				//const info_schema = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/information_schema_stg.csv", 'utf-8');
-				const summary_stg = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/stg_summarize.csv", 'utf-8');
-				const summary_int = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/int_summarize.csv", 'utf-8');
+				const summary_stg = fs.readFileSync(stg_summary_route.substring(1));
+				const summary_int = fs.readFileSync(int_summary_route.substring(1));
 				//const intermediate_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/intermediate_reason.txt", 'utf-8');
-				const mart_reason = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/mart_reason.txt", 'utf-8');
+				const mart_reason = fs.readFileSync(path.resolve(__dirname, '../mart_reason.txt'));
 				const completion = await openai.chat.completions.create({
 					messages: [
 						{
@@ -162,7 +168,7 @@ export function activate(context: vscode.ExtensionContext) {
 								summary_int + "\n" +
 								"Please only respond with working code, remember the *basics of SQL development*!\n" +
 								"Don't put a semicolon at the end of the select statement!\n" +
-								"Please only respond with the generated code and only that, without any triple-backticks!\n" +
+								"Please *only* respond with the *generated code* and only that, *avoid code block markdown*!\n" +
 								"You are *automating the process of developing*, so *generate all* the resulting models' code, not just one example!\n"
 						},
 						{
@@ -185,7 +191,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const disposable4 = vscode.commands.registerCommand('extension.dbt-gen-stg-yaml', function () {
+	const disposable4 = vscode.commands.registerCommand('extension.dbt-gen-yaml', function () {
 		// Get the active text editor
 		const editor = vscode.window.activeTextEditor;
 		const workspace = vscode.workspace;
@@ -194,46 +200,60 @@ export function activate(context: vscode.ExtensionContext) {
 			const document = editor.document;
 			const selection = editor.selection;
 			const ws_folder = workspace.workspaceFolders[0].uri.path;
-			const sources = ws_folder + '/dipterv_v0/models/sources.yml'
+			const stg_summary_route = ws_folder + '/dbt_code_generator/staging/stg_summarize.csv'
+			const int_summary_route = ws_folder + '/dbt_code_generator/intermediate/int_summarize.csv'
+			const mart_summary_route = ws_folder + '/dbt_code_generator/mart/mart_summarize.csv'
+			const lineage_route = ws_folder + '/dbt_code_generator/yaml/lineage.csv'
+
 
 
 			const openai = new OpenAI();
 
 			async function main() {
-				const summary = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/data/stg_summarize.csv", 'utf-8');
-				const yaml_example = fs.readFileSync("C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/description_yaml_example.txt", 'utf-8');
-				const test_example = fs.readFileSync('C:/Users/elo_zsombor/Documents/dipterv/dbt-code-generator/test_reason_and_examples.txt', 'utf-8');
+				const summary_stg = fs.readFileSync(stg_summary_route.substring(1));
+				const summary_int = fs.readFileSync(int_summary_route.substring(1));
+				const summary_mart = fs.readFileSync(mart_summary_route.substring(1));
+				const lineage = fs.readFileSync(lineage_route.substring(1));
+				const yaml_example = fs.readFileSync(path.resolve(__dirname, '../description_yaml_example.txt'));
+				const test_example = fs.readFileSync(path.resolve(__dirname, '../test_reason_and_examples.txt'));
 
 				const completion = await openai.chat.completions.create({
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. You are new to a project, where you know nothing of the data, that you are working with, except the information provided below.\n" +
-								"Your job is to complement a yaml file that describes properties of a layer's SQL models using a summary of the content of the unique database.\n" +
-								"The summary of the database contains information regarding uniqueness, null values, number of distinct values, example values and some additional statistics for each column in the database.\n" +
+								"You are a data engineer working with dbt. You are new to a project, where *you know nothing of the data*, that you are working with, *except the information provided below*.\n" +
+								"Your job is to *complement a yaml file that describes properties* of SQL models.\n" +
+								"You will be given a *summary of the content of the unique database*, *the lineage of the models* and *one model from it* that you should use.\n" +
+								"The *summary of the database* contains information regarding *uniqueness*, *null values*, *number of distinct values*, *example values* and some additional statistics *for each column* in the database.\n" +
 								yaml_example + "\n" +
 								test_example + "\n" +
-								"Add generic tests to the columns only, where you are absolutely sure, that it is correct to test that based on the information provided about the columns!\n" +
-								"You should consider other columns' and tables' information in the summarization table when adding the generic tests!\n" +
-								"Try to recognize as many foreign keys in the database, as you can using the relationships test!\n" +
-								"The 'accepted_values' test should be only on 'warn' severity!\n" +
-								"You can assume, that the property YAML file already exists and you just have to complement it with the given model's properties!\n" +
-								"The beginning of the existing YAML file, that shouldn't be in the answer, is:\n" +
+								"Add *generic tests* to the columns only, where you are *absolutely sure*, that it is *correct to test* that based on the *information provided* about the columns!\n" +
+								"Try to recognize as many *foreign keys* in the database, as you can using the *relationships test*!\n" +
+								"*Only* generate *relationships* test, if *in the lineage of the models* the *other model* is *not a child* of this model!\n" +
+								"The *'accepted_values'* test should be *only* on 'warn' severity!\n" +
+								"You can assume, that the property *YAML file already exists* and you just have to *complement it* with the given model's properties!\n" +
+								"The first two rows of the existing YAML file, that shouldn't be in the answer, is:\n" +
 								"version: 2\n" +
-								"\n" +
 								"models:\n" +
-								"You are automating the process of developing, so generate all the addition regarding the model, not just one example!\n" +
-								"You have to use information provided about the data in this context only!\n" +
-								"Only respond with the addition itself, without any triple-backticks!\n"
+								"\n" +
+								"You are *automating the process of developing*, so *generate all* the addition regarding the model, not just one example!\n" +
+								"You should *only* generate the columns that are *part of the given model*!\n" +
+								"You have to use *information provided* about the data in *this context only*!\n" +
+								"*Only* respond with the *addition itself*, *avoid code block markdown*!\n"
 						},
 						{
-							role: "user", content: "The summary of the unique database in CSV format is:\n" +
-								summary + "\n" +
+							role: "user", content: "The *summary of the unique database* in CSV format is:\n" +
+								summary_stg + "\n" +
+								summary_int + "\n" +
+								summary_mart + "\n" +
+								"The *lineage* of the models, parent and child pairs: \n" +
+								lineage + "\n" +
+								"Your given *model* is the following:\n" +
 								document.getText(selection)
 						}
 					],
 					model: "gpt-4-0125-preview",
-					temperature: 0.3
+					temperature: 0.5
 				});
 
 				return completion!.choices[0]!.message['content'];
