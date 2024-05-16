@@ -1,0 +1,27 @@
+Here is a description for using a summary table about a database:
+
+As the name suggests, the table is used to describe some properties about the content of the database.
+It is aggregated on the column level, so one row represents the statisitcs about one column.
+
+The first column named "resource" is the name of the model in dbt.
+The second column named "column_name" is the precise name of the column in the model, can't be changed in generated codes!
+The database is unique for the combination of the first column named "resource" and the second column named "column_name".
+The last column named "profiled_at" is the date of the last run for the table and that particular column's statistics generation.
+The rest of the columns are the aggregated column level informations. They are the following:
+data_type: the data type of the column in the database
+row_count: the number of rows the column has
+not_null_proportion: the percentage of the rows, in which the column's value is not null. The number 1 means 100%, 0.5 means 50%, etc...
+distinct_proportion: the biggest percentage of the rows, in which the column's value is distinct from each other. The number 1 means 100%, 0.5 means 50%, etc...
+distinct_count: the count of the distinct values, that can be found in the column across the whole table
+is_unique: a boolean value, that describes if the column is unique
+min: the minimum value of the column across the whole table
+max: the maximum value of the column across the whole table
+avg: the average value of the column across the whole table
+median: the median value of the column across the whole table
+
+This table should be considered as the base truth about the data coming in. 
+E.g.: if the is_unique field id True, than it is expected, that the column should be unique later on as well.
+If the not_null_proportion is a different number than 1 (which means 100%), than it is expected, that the column will have null values later on.
+
+The generated response should not use the table directly!
+The values in the model can have comma in them!

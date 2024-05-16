@@ -90,7 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to *make an intermediate model* from given staging models, other intermediate models and a summarization of the available columns. Use the *ref() Jinja function and other Jinja code*, wherever possible!\n" +
+								"You are a data engineer working with dbt. Your job is to *make an intermediate model* from given staging models, other intermediate models and statistics of the available columns. Use the *ref() Jinja function and other Jinja code*, wherever possible!\n" +
 								"Remember to use the *staging models or other intermediate models as a base* and work from there!\n" +
 								"Construct the intermediate models, so they can be *useful in future mart model* development!\n" +
 								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
@@ -98,9 +98,9 @@ export function activate(context: vscode.ExtensionContext) {
 								intermediate_reason + "\n" +
 								int_example + "\n" +
 								"Remember, when making CTEs from referenced models, *always use 'select *' *!\n" +
-								"Your given *summary of the staging layer*:\n" +
+								"Your given *statistics of the staging layer*:\n" +
 								summary_stg + "\n" +
-								"Your given *summary of the intermediate layer*:\n" +
+								"Your given *statistics of the intermediate layer*:\n" +
 								summary_int + "\n" +
 								"Please only respond with working code, remember the *basics of SQL development*!\n" +
 								"Don't put a semicolon at the end of the select statement!\n" +
@@ -154,7 +154,7 @@ export function activate(context: vscode.ExtensionContext) {
 					messages: [
 						{
 							role: "system", content:
-								"You are a data engineer working with dbt. Your job is to *make a mart table* from a given staging layer, intermediate layer and a summarization of the available columns. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
+								"You are a data engineer working with dbt. Your job is to *make a mart table* from a given staging layer, intermediate layer and a statistics of the available columns. Use the ref() Jinja function and other Jinja code, wherever possible!\n" +
 								"Mart tables should be enriched with many dimension columns, so they can be better aggregated in the future!\n" +
 								"Mart tables should be *easily analyzable in a BI tool* and using *names, that are familiar* with the ordinary businessman!\n" +
 								"Use only fields in the CTEs, that you will use later in the other CTEs and the final model! \n" +
@@ -162,9 +162,9 @@ export function activate(context: vscode.ExtensionContext) {
 								mart_reason + "\n" +
 								mart_example + "\n" +
 								"Remember, when making CTEs from referenced models, *always use 'select *' *!\n" +
-								"Your given *summary of the staging layer*:\n" +
+								"Your given *statistics of the staging layer*:\n" +
 								summary_stg + "\n" +
-								"Your given *summary of the intermediate layer*:\n" +
+								"Your given *statistics of the intermediate layer*:\n" +
 								summary_int + "\n" +
 								"Please only respond with working code, remember the *basics of SQL development*!\n" +
 								"Don't put a semicolon at the end of the select statement!\n" +
@@ -216,6 +216,7 @@ export function activate(context: vscode.ExtensionContext) {
 				const lineage = fs.readFileSync(lineage_route.substring(1));
 				const yaml_example = fs.readFileSync(path.resolve(__dirname, '../description_yaml_example.txt'));
 				const test_example = fs.readFileSync(path.resolve(__dirname, '../test_reason_and_examples.txt'));
+				const stat_description = fs.readFileSync(path.resolve(__dirname, '../statistics_description.txt'));
 
 				const completion = await openai.chat.completions.create({
 					messages: [
@@ -223,8 +224,8 @@ export function activate(context: vscode.ExtensionContext) {
 							role: "system", content:
 								"You are a data engineer working with dbt. You are new to a project, where *you know nothing of the data*, that you are working with, *except the information provided below*.\n" +
 								"Your job is to *complement a yaml file that describes properties* of SQL models.\n" +
-								"You will be given a *summary of the content of the unique database*, *the lineage of the models* and *one model from it* that you should use.\n" +
-								"The *summary of the database* contains information regarding *uniqueness*, *null values*, *number of distinct values*, *example values* and some additional statistics *for each column* in the database.\n" +
+								"You will be given *statistics of the content of the unique database on a column level* and *the lineage of the models*, both in CSV format, that you should use.\n" +
+								stat_description + "\n" +
 								yaml_example + "\n" +
 								test_example + "\n" +
 								"Add *generic tests* to the columns only, where you are *absolutely sure*, that it is *correct to test* that based on the *information provided* about the columns!\n" +
@@ -237,12 +238,12 @@ export function activate(context: vscode.ExtensionContext) {
 								"models:\n" +
 								"\n" +
 								"You are *automating the process of developing*, so *generate all* the addition regarding the model, not just one example!\n" +
-								"You should *only* generate the columns that are *part of the given model*!\n" +
+								"You should *only* generate the rows for the columns that are *part of the given model*!\n" +
 								"You have to use *information provided* about the data in *this context only*!\n" +
 								"*Only* respond with the *addition itself*, *avoid code block markdown*!\n"
 						},
 						{
-							role: "user", content: "The *summary of the unique database* in CSV format is:\n" +
+							role: "user", content: "*Statistics of the unique database* in CSV format is:\n" +
 								summary_stg + "\n" +
 								summary_int + "\n" +
 								summary_mart + "\n" +
@@ -268,8 +269,76 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	const disposable5 = vscode.commands.registerCommand('extension.dbt-gen-cust-data-test', function () {
+		// Get the active text editor
+		const editor = vscode.window.activeTextEditor;
+		const workspace = vscode.workspace;
+
+		if (editor && workspace.workspaceFolders !== undefined) {
+			const document = editor.document;
+			const selection = editor.selection;
+			const ws_folder = workspace.workspaceFolders[0].uri.path;
+			const stg_summary_route = ws_folder + '/dbt_code_generator/staging/stg_summarize.csv'
+			const int_summary_route = ws_folder + '/dbt_code_generator/intermediate/int_summarize.csv'
+			const mart_summary_route = ws_folder + '/dbt_code_generator/mart/mart_summarize.csv'
+			const lineage_route = ws_folder + '/dbt_code_generator/yaml/lineage.csv'
+
+
+
+			const openai = new OpenAI();
+
+			async function main() {
+				const summary_stg = fs.readFileSync(stg_summary_route.substring(1));
+				const summary_int = fs.readFileSync(int_summary_route.substring(1));
+				const summary_mart = fs.readFileSync(mart_summary_route.substring(1));
+				const lineage = fs.readFileSync(lineage_route.substring(1));
+				const stat_description = fs.readFileSync(path.resolve(__dirname, '../statistics_description.txt'));
+				const custom_test_example = fs.readFileSync(path.resolve(__dirname, '../custom_test_reason_and_examples.txt'));
+
+				const completion = await openai.chat.completions.create({
+					messages: [
+						{
+							role: "system", content:
+								"You are a data engineer working with dbt. You are new to a project, where *you know nothing of the data*, that you are working with, *except the information provided below*.\n" +
+								"Your job is to *make custom data tests* for SQL models.\n" +
+								"You will be given *statistics of the content of the unique database on a column level* and *the lineage of the models*, both in CSV format, that you should use.\n" +
+								stat_description + "\n" +
+								custom_test_example + "\n" +
+								"The generated SQL code can *only* use *columns from the given models*! This information can be *found in the statistics table*!\n" +
+								"Please, be *precise* when *referencing the columns' names* from the statistics!\n" +
+								"You have to use *information provided* about the data in *this context only*!\n" +
+								"*Only* respond with the *code* itself, *avoid code block markdown*!\n"
+						},
+						{
+							role: "user", content: "*Statistics of the unique database* in CSV format is:\n" +
+								summary_stg + "\n" +
+								summary_int + "\n" +
+								summary_mart + "\n" +
+								"The *lineage* of the models, parent and child pairs in CSV format: \n" +
+								lineage + "\n" +
+								"Your given *task* is the following:\n" +
+								document.getText(selection)
+						}
+					],
+					model: "gpt-4-0125-preview",
+					temperature: 0.3
+				});
+
+				return completion!.choices[0]!.message['content'];
+			};
+
+			// Get the word within the selection
+			main().then((result) => {
+				editor.edit(editBuilder => {
+					editBuilder.replace(selection, document.getText(selection) + "\n" + result);
+				});
+			});
+		}
+	});
+
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(disposable2);
 	context.subscriptions.push(disposable3);
 	context.subscriptions.push(disposable4);
+	context.subscriptions.push(disposable5);
 }

@@ -1,0 +1,125 @@
+Custom data tests and examples:
+The data tests property defines assertions about a column, table, or view. The property contains a list of generic tests, referenced by name, which can include the four built-in generic tests available in dbt. For example, you can add tests that ensure a column contains no duplicates and zero null values. Any arguments or configurations passed to those tests should be nested below the test name.
+
+Once these tests are defined, you can validate their correctness by running dbt test.
+
+The simplest way to define a data test is by writing the exact SQL that will return failing records. We call these "singular" data tests, because they're one-off assertions usable for a single purpose.
+
+These tests are defined in .sql files, typically in your tests directory (as defined by your test-paths config). You can use Jinja (including ref and source) in the test definition, just like you can when creating models. Each .sql file contains one select statement, and it defines one data test:
+
+-- tests/assert_total_payment_amount_is_positive.sql
+-- Refunds have a negative amount, so the total amount should always be >= 0.
+-- Therefore return records where total_amount < 0 to make the test fail.
+select
+    order_id,
+    sum(amount) as total_amount
+from {{ ref('fct_payments' )}}
+group by 1
+having total_amount < 0
+
+The name of this test is the name of the file: assert_total_payment_amount_is_positive. Simple enough.
+
+Singular data tests are easy to write—so easy that you may find yourself writing the same basic structure over and over, only changing the name of a column or model. By that point, the test isn't so singular! In that case, we recommend...
+
+Generic tests with standard arguments
+Generic tests are defined in SQL files. Those files can live in two places:
+
+tests/generic/: that is, a special subfolder named generic within your test paths (tests/ by default)
+macros/: Why? Generic tests work a lot like macros, and historically, this was the only place they could be defined. If your generic test depends on complex macro logic, you may find it more convenient to define the macros and the generic test in the same file.
+To define your own generic tests, simply create a test block called <test_name>. All generic tests should accept one or both of the standard arguments:
+
+model: The resource on which the test is defined, templated out to its relation name. (Note that the argument is always named model, even when the resource is a source, seed, or snapshot.)
+column_name: The column on which the test is defined. Not all generic tests operate on the column level, but if they do, they should accept column_name as an argument.
+Here's an example of an is_even schema test that uses both arguments:
+
+--tests/generic/test_is_even.sql
+{% test is_even(model, column_name) %}
+
+with validation as (
+
+    select
+        {{ column_name }} as even_field
+
+    from {{ model }}
+
+),
+
+validation_errors as (
+
+    select
+        even_field
+
+    from validation
+    -- if this is true, then even_field is actually odd!
+    where (even_field % 2) = 1
+
+)
+
+select *
+from validation_errors
+
+{% endtest %}
+
+If this select statement returns zero records, then every record in the supplied model argument is even! If a nonzero number of records is returned instead, then at least one record in model is odd, and the test has failed.
+
+With one line of code, you've just created a test! In this example, users will be passed to the is_even test as the model argument, and favorite_number will be passed in as the column_name argument. You could add the same line for other columns, other models—each will add a new test to your project, using the same generic test definition.
+
+Generic tests with additional arguments
+The is_even test works without needing to specify any additional arguments. Other tests, like relationships, require more than just model and column_name. If your custom tests requires more than the standard arguments, include those arguments in the test signature, as field and to are included below:
+
+--tests/generic/test_relationships.sql
+{% test relationships(model, column_name, field, to) %}
+
+with parent as (
+
+    select
+        {{ field }} as id
+
+    from {{ to }}
+
+),
+
+child as (
+
+    select
+        {{ column_name }} as id
+
+    from {{ model }}
+
+)
+
+select *
+from child
+where id is not null
+  and id not in (select id from parent)
+
+{% endtest %}
+
+Generic tests with default config values
+It is possible to include a config() block in a generic test definition. Values set there will set defaults for all specific instances of that generic test, unless overridden within the specific instance's .yml properties.
+
+--tests/generic/warn_if_odd.sql
+{% test warn_if_odd(model, column_name) %}
+
+    {{ config(severity = 'warn') }}
+
+    select *
+    from {{ model }}
+    where ({{ column_name }} % 2) = 1
+
+{% endtest %}
+
+Any time the warn_if_odd test is used, it will always have warning-level severity, unless the specific test overrides that value:
+
+models/<filename>.yml
+version: 2
+
+Customizing dbt's built-in tests
+To change the way a built-in generic test works—whether to add additional parameters, re-write the SQL, or for any other reason—you simply add a test block named <test_name> to your own project. dbt will favor your version over the global implementation!
+
+tests/generic/<filename>.sql
+{% test unique(model, column_name) %}
+
+    -- whatever SQL you'd like!
+
+{% endtest %}
