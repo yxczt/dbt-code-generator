@@ -34,11 +34,15 @@
       },
       {
         "command": "extension.dbt-gen-yaml",
-        "title": "Generate property description YAML and generic tests with ChatGPT"
+        "title": "Generate property description YAML and basic generic tests with ChatGPT"
       },
       {
-        "command": "extension.dbt-gen-cust-data-test",
-        "title": "Generate custom data tests with ChatGPT"
+        "command": "extension.dbt-gen-sing-data-test",
+        "title": "Generate custom singular data tests with ChatGPT"
+      },
+      {
+        "command": "extension.dbt-gen-cust-gen-data-test",
+        "title": "Generate custom generic data tests with ChatGPT"
       }
     ]
   },
