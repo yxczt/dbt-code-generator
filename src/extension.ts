@@ -6,7 +6,6 @@ import OpenAI from "openai";
 
 import * as fs from 'fs';
 import path from 'path';
-import { createECDH } from 'crypto';
 
 export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand('extension.dbt-gen-stg', function () {
@@ -108,7 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
 								summary_int + "\n" +
 								"The *lineage* of the models, parent and child pairs: \n" +
 								lineage + "\n" +
-								"Respond *only* with the *model and their columns*!\n"
+								"Respond *only* with the *models and their columns*!\n"
 
 						},
 						{
